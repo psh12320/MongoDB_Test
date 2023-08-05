@@ -1,6 +1,3 @@
-# Packages required: python-telegram-bot, fastapi, requests, pymongo, dnspython
-import sys
-
 import pymongo
 import telegram
 import requests
