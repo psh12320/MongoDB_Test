@@ -1,5 +1,7 @@
 import pymongo
 import telegram
+import sys
+import asyncio
 import requests
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
@@ -9,7 +11,7 @@ import os
 load_dotenv()
 app = FastAPI()
 TOKEN = os.getenv('TOKEN')
-URL = os.getenv('URL')
+URL = os.getenv('URL') # Get from Heroku
 uri = os.getenv('uri')
 
 # Create a new client and connect to the server
@@ -47,35 +49,45 @@ async def process_data(data):
     chatid = data['message']['chat']['id']
     text = data['message']['text']
     # Check db for data on user using chatid
-    try:
-
-
-
-
-async def start(chat_id, message):
-    # Insert document when user starts using bot.
-    add_document =[{"chatid": chat_id, "convstate": "0", "name": "", "fac": "", "degree": "", "completion": "False"}]
-    try:
-        result = my_collection.insert_one(add_document)
-    # return a friendly error if the operation fails
-    except pymongo.errors.OperationFailure:
-        print(
-            "An authentication error was received. Are you sure your database user is authorized to perform write operations?")
-        sys.exit(1)
+    if text == "/help":
+        await help(chat_id=chatid)
+    elif text == "/start":
+        try:
+            existence = my_collection.find_one({"chatid": chatid})
+            print(existence)
+        except False:
+            try:
+                add_document = [{"chatid": chatid, "convstate": "0", "name": "", "fac": "", "degree": "", "completion": "False"}]
+                my_collection.insert_one(add_document)
+            except pymongo.errors.OperationFailure:
+                print("[DATABASE] Authentication error")
+                sys.exit(1)
+            else:
+                print("[DATABASE] New record added")
+                await start(chat_id=chatid)
+        else:
+            print("[DATABASE] Some database record already exists")
     else:
-        inserted_count = len(result.inserted_ids)
-        print("I inserted %x documents." % inserted_count)
-
-        print("\n")
-    await bot.send_message(chat_id=chat_id, text=f"Hi, {telegram.User.mention_markdown_v2()}")
+        await others(chat_id=chatid)
 
 
-async def help(chat_id, message):
+async def start(chat_id):
+  await bot.send_message(chat_id=chat_id, text=f"Hi, {telegram.User.mention_markdown_v2()}")
+
+
+async def help(chat_id):
     await bot.send_message(chat_id=chat_id, text="Follow along as the bot guides you to enter your details!")
 
 
-async def name(chat_id, message):
-    await
+async def others(chat_id):
+    await bot.send_message(chat_id=chat_id, text="Haha.")
+
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(setup_webhook())
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8443)
 
 
 
