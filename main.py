@@ -38,6 +38,7 @@ async def setup_webhook():
 
 @app.post(f"/{TOKEN}")
 async def webhook(request: Request):
+    print("[WEBHOOK] Awaiting data")
     update = await request.json()
     update_data = telegram.Update.de_json(update, bot)
     print("[WEBHOOK] Data has been received from webhook.")
@@ -46,6 +47,7 @@ async def webhook(request: Request):
 
 async def process_data(data):
     """Find ChatID, Text and send to correct function"""
+
     chatid = data['message']['chat']['id']
     text = data['message']['text']
     # Check db for data on user using chatid
@@ -87,7 +89,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(setup_webhook())
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8443)
+    uvicorn.run(app)
 
 
 
