@@ -42,7 +42,8 @@ async def webhook(request: Request):
     update = await request.json()
     update_data = telegram.Update.de_json(update, bot)
     print("[WEBHOOK] Data has been received from webhook.")
-    return process_data(update_data)
+    data = await process_data(update_data)
+    print(data)
 
 
 async def process_data(data):
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(setup_webhook())
     import uvicorn
-    uvicorn.run(app)
+    uvicorn.run(app, host="0.0.0.0", port=8443)
 
 
 
