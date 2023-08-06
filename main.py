@@ -76,16 +76,25 @@ async def process_data(data):
             print("[DB EXISTENCE TEST] Current ChatID status in DB is", existence)
             if existence is None:
                 # Handle the case where no document was found
+                # 1. Create a document in DB for this person
+                # 2. Invoke function to ask for name
                 print("[DB EXISTENCE TEST] No document found for chatid:", chatid)
+                add_document = [{"chatid": chatid, "convstate": "0", "name": "", "fac": "", "degree": "", "completion": "False"}]
+                my_collection.insert_one(add_document)
                 await name(chat_id=chatid)
             else:
                 # Document was found, process the existing document
+                # 1. Find last finished conversation state
+                # 2. Invoke function according to the last known conversation state
                 await others(chat_id=chatid)
         except Exception as e:
             print("[DB EXISTENCE TEST] An error occurred:", str(e))
             # Handle the error scenario here if needed (e.g., logging, notifying, etc.)
 
     else:
+        # This else block should also find last finished conversation state
+        # 1. Find last finished conversation state
+        # 2. Invoke function according to the last known conversation state
         await others(chat_id=chatid)
 
 
@@ -98,7 +107,7 @@ async def help(chat_id):
 
 
 async def others(chat_id):
-    await bot.send_message(chat_id=chat_id, text="Haha.")
+    await bot.send_message(chat_id=chat_id, text="[Find conversation state]")
 
 async def name(chat_id):
     await bot.send_message(chat_id=chat_id, text="What is your name?")
