@@ -42,6 +42,7 @@ async def webhook(request: Request):
     update = await request.json()
     update_data = telegram.Update.de_json(update, bot)
     print("[WEBHOOK] Data has been received from webhook.")
+    print("[WEBHOOK] Update data is:", update_data)
     data = await process_data(update_data)
     print(data)
 
@@ -51,25 +52,39 @@ async def process_data(data):
 
     chatid = data['message']['chat']['id']
     text = data['message']['text']
+    print("[PROCESS UPDATE] ChatID is", chatid)
+    print("[PROCESS UPDATE] Text is", text)
     # Check db for data on user using chatid
     if text == "/help":
         await help(chat_id=chatid)
     elif text == "/start":
+        # try:
+        #     existence = my_collection.find_one({"chatid": chatid})
+        #     print("[DB EXISTENCE TEST] Current ChatID status in DB is", existence)
+        # except False:
+        #     try:
+        #         add_document = [{"chatid": chatid, "convstate": "0", "name": "", "fac": "", "degree": "", "completion": "False"}]
+        #         my_collection.insert_one(add_document)
+        #     except pymongo.errors.OperationFailure:
+        #         print("[DATABASE] Authentication error")
+        #         sys.exit(1)
+        #     else:
+        #         print("[DATABASE] New record added")
+        #         await start(chat_id=chatid)
         try:
             existence = my_collection.find_one({"chatid": chatid})
-            print(existence)
-        except False:
-            try:
-                add_document = [{"chatid": chatid, "convstate": "0", "name": "", "fac": "", "degree": "", "completion": "False"}]
-                my_collection.insert_one(add_document)
-            except pymongo.errors.OperationFailure:
-                print("[DATABASE] Authentication error")
-                sys.exit(1)
+            print("[DB EXISTENCE TEST] Current ChatID status in DB is", existence)
+
+            if existence is None:
+                # Handle the case where no document was found
+                print("[DB EXISTENCE TEST] No document found for chatid:", chatid)
             else:
-                print("[DATABASE] New record added")
-                await start(chat_id=chatid)
-        else:
-            print("[DATABASE] Some database record already exists")
+                # Document was found, process the existing document
+                await name(chat_id=chatid)
+        except Exception as e:
+            print("[DB EXISTENCE TEST] An error occurred:", str(e))
+            # Handle the error scenario here if needed (e.g., logging, notifying, etc.)
+
     else:
         await others(chat_id=chatid)
 
@@ -84,6 +99,9 @@ async def help(chat_id):
 
 async def others(chat_id):
     await bot.send_message(chat_id=chat_id, text="Haha.")
+
+async def name(chat_id):
+    await bot.send_message(chat_id=chat_id, text="What is your name?")
 
 
 if __name__ == "__main__":
