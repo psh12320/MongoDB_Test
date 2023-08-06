@@ -74,13 +74,13 @@ async def process_data(data):
         try:
             existence = my_collection.find_one({"chatid": chatid})
             print("[DB EXISTENCE TEST] Current ChatID status in DB is", existence)
-
             if existence is None:
                 # Handle the case where no document was found
                 print("[DB EXISTENCE TEST] No document found for chatid:", chatid)
+                await name(chat_id=chatid)
             else:
                 # Document was found, process the existing document
-                await name(chat_id=chatid)
+                await others(chat_id=chatid)
         except Exception as e:
             print("[DB EXISTENCE TEST] An error occurred:", str(e))
             # Handle the error scenario here if needed (e.g., logging, notifying, etc.)
